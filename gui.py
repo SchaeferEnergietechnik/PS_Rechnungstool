@@ -12,7 +12,7 @@ Funktionen:
 import os
 import threading
 import tkinter as tk
-from tkinter import filedialog, messagebox, scrolledtext, ttk
+from tkinter import filedialog, messagebox, scrolledtext
 
 # Interne Module
 import Rechnung_umbenennen_1 as renamer
@@ -62,133 +62,128 @@ class PSRechnungstoolApp(tk.Tk):
 
     def _build_ui(self):
         """Baut die Benutzeroberfläche auf."""
-        notebook = ttk.Notebook(self)
-        notebook.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
+        main = tk.Frame(self)
+        main.pack(fill=tk.BOTH, expand=True, padx=8, pady=8)
 
-        # Tab 1: Umbenennen
-        tab_rename = ttk.Frame(notebook)
-        notebook.add(tab_rename, text="PDF umbenennen")
-        self._build_rename_tab(tab_rename)
-
-        # Tab 2: Datenübernahme
-        tab_extract = ttk.Frame(notebook)
-        notebook.add(tab_extract, text="Daten → Excel")
-        self._build_extract_tab(tab_extract)
-
-        # Tab 3: E-Mail-Abgleich
-        tab_email = ttk.Frame(notebook)
-        notebook.add(tab_email, text="E-Mail-Abgleich")
-        self._build_email_tab(tab_email)
+        self._build_rename_section(main)
+        self._build_extract_section(main)
+        self._build_email_section(main)
 
         # Log-Bereich (gemeinsam)
-        log_frame = ttk.LabelFrame(self, text="Protokoll")
-        log_frame.pack(fill=tk.BOTH, expand=True, padx=8, pady=(0, 8))
+        log_frame = tk.LabelFrame(main, text="Protokoll")
+        log_frame.pack(fill=tk.BOTH, expand=True, padx=2, pady=(6, 2))
 
         self._log = scrolledtext.ScrolledText(
             log_frame, height=10, state=tk.DISABLED, wrap=tk.WORD
         )
         self._log.pack(fill=tk.BOTH, expand=True, padx=4, pady=4)
 
-        btn_clear = ttk.Button(log_frame, text="Protokoll leeren", command=self._clear_log)
+        btn_clear = tk.Button(log_frame, text="Protokoll leeren", command=self._clear_log)
         btn_clear.pack(anchor=tk.E, padx=4, pady=(0, 4))
 
-    # --- Tab: Umbenennen ---
+    # --- Bereich: Umbenennen ---
 
-    def _build_rename_tab(self, parent: ttk.Frame):
+    def _build_rename_section(self, parent):
         pad = {"padx": 8, "pady": 4}
+        frame = tk.LabelFrame(parent, text="PDF umbenennen")
+        frame.pack(fill=tk.X, padx=2, pady=2)
 
-        ttk.Label(parent, text="PDF-Ordner:").grid(row=0, column=0, sticky=tk.W, **pad)
-        ttk.Entry(parent, textvariable=self._pdf_folder, width=55).grid(
+        tk.Label(frame, text="PDF-Ordner:").grid(row=0, column=0, sticky=tk.W, **pad)
+        tk.Entry(frame, textvariable=self._pdf_folder, width=55).grid(
             row=0, column=1, sticky=tk.EW, **pad
         )
-        ttk.Button(parent, text="Durchsuchen…", command=self._browse_pdf_folder).grid(
+        tk.Button(frame, text="Durchsuchen…", command=self._browse_pdf_folder).grid(
             row=0, column=2, **pad
         )
 
-        btn_frame = ttk.Frame(parent)
+        btn_frame = tk.Frame(frame)
         btn_frame.grid(row=1, column=0, columnspan=3, pady=8)
 
-        ttk.Button(
+        tk.Button(
             btn_frame,
             text="Umbenennen (Vorschau)",
             command=lambda: _run_in_thread(self._run_rename, dry_run=True),
         ).pack(side=tk.LEFT, padx=4)
 
-        ttk.Button(
+        tk.Button(
             btn_frame,
             text="Umbenennen (ausführen)",
             command=lambda: _run_in_thread(self._run_rename, dry_run=False),
         ).pack(side=tk.LEFT, padx=4)
 
-        parent.columnconfigure(1, weight=1)
+        frame.columnconfigure(1, weight=1)
 
-    # --- Tab: Datenübernahme ---
+    # --- Bereich: Datenübernahme ---
 
-    def _build_extract_tab(self, parent: ttk.Frame):
+    def _build_extract_section(self, parent):
         pad = {"padx": 8, "pady": 4}
+        frame = tk.LabelFrame(parent, text="Daten → Excel")
+        frame.pack(fill=tk.X, padx=2, pady=2)
 
-        ttk.Label(parent, text="PDF-Ordner:").grid(row=0, column=0, sticky=tk.W, **pad)
-        ttk.Entry(parent, textvariable=self._pdf_folder, width=55).grid(
+        tk.Label(frame, text="PDF-Ordner:").grid(row=0, column=0, sticky=tk.W, **pad)
+        tk.Entry(frame, textvariable=self._pdf_folder, width=55).grid(
             row=0, column=1, sticky=tk.EW, **pad
         )
-        ttk.Button(parent, text="Durchsuchen…", command=self._browse_pdf_folder).grid(
+        tk.Button(frame, text="Durchsuchen…", command=self._browse_pdf_folder).grid(
             row=0, column=2, **pad
         )
 
-        ttk.Label(parent, text="Excel-Zieldatei:").grid(row=1, column=0, sticky=tk.W, **pad)
-        ttk.Entry(parent, textvariable=self._excel_file, width=55).grid(
+        tk.Label(frame, text="Excel-Zieldatei:").grid(row=1, column=0, sticky=tk.W, **pad)
+        tk.Entry(frame, textvariable=self._excel_file, width=55).grid(
             row=1, column=1, sticky=tk.EW, **pad
         )
-        ttk.Button(parent, text="Speichern unter…", command=self._browse_excel_save).grid(
+        tk.Button(frame, text="Speichern unter…", command=self._browse_excel_save).grid(
             row=1, column=2, **pad
         )
 
-        ttk.Button(
-            parent,
+        tk.Button(
+            frame,
             text="Daten extrahieren",
             command=lambda: _run_in_thread(self._run_extract),
         ).grid(row=2, column=0, columnspan=3, pady=8)
 
-        parent.columnconfigure(1, weight=1)
+        frame.columnconfigure(1, weight=1)
 
-    # --- Tab: E-Mail-Abgleich ---
+    # --- Bereich: E-Mail-Abgleich ---
 
-    def _build_email_tab(self, parent: ttk.Frame):
+    def _build_email_section(self, parent):
         pad = {"padx": 8, "pady": 4}
+        frame = tk.LabelFrame(parent, text="E-Mail-Abgleich")
+        frame.pack(fill=tk.X, padx=2, pady=2)
 
-        ttk.Label(parent, text="Kunden-Excel:").grid(row=0, column=0, sticky=tk.W, **pad)
-        ttk.Entry(parent, textvariable=self._customer_excel, width=55).grid(
+        tk.Label(frame, text="Kunden-Excel:").grid(row=0, column=0, sticky=tk.W, **pad)
+        tk.Entry(frame, textvariable=self._customer_excel, width=55).grid(
             row=0, column=1, sticky=tk.EW, **pad
         )
-        ttk.Button(parent, text="Öffnen…", command=self._browse_customer_excel).grid(
+        tk.Button(frame, text="Öffnen…", command=self._browse_customer_excel).grid(
             row=0, column=2, **pad
         )
 
-        ttk.Label(parent, text="Firmen-Excel:").grid(row=1, column=0, sticky=tk.W, **pad)
-        ttk.Entry(parent, textvariable=self._company_excel, width=55).grid(
+        tk.Label(frame, text="Firmen-Excel:").grid(row=1, column=0, sticky=tk.W, **pad)
+        tk.Entry(frame, textvariable=self._company_excel, width=55).grid(
             row=1, column=1, sticky=tk.EW, **pad
         )
-        ttk.Button(parent, text="Öffnen…", command=self._browse_company_excel).grid(
+        tk.Button(frame, text="Öffnen…", command=self._browse_company_excel).grid(
             row=1, column=2, **pad
         )
 
-        ttk.Label(parent, text="Ausgabe-Excel (opt.):").grid(
+        tk.Label(frame, text="Ausgabe-Excel (opt.):").grid(
             row=2, column=0, sticky=tk.W, **pad
         )
-        ttk.Entry(parent, textvariable=self._output_excel, width=55).grid(
+        tk.Entry(frame, textvariable=self._output_excel, width=55).grid(
             row=2, column=1, sticky=tk.EW, **pad
         )
-        ttk.Button(parent, text="Speichern unter…", command=self._browse_output_excel).grid(
+        tk.Button(frame, text="Speichern unter…", command=self._browse_output_excel).grid(
             row=2, column=2, **pad
         )
 
-        ttk.Button(
-            parent,
+        tk.Button(
+            frame,
             text="E-Mails abgleichen",
             command=lambda: _run_in_thread(self._run_email_update),
         ).grid(row=3, column=0, columnspan=3, pady=8)
 
-        parent.columnconfigure(1, weight=1)
+        frame.columnconfigure(1, weight=1)
 
     # ------------------------------------------------------------------
     # Dateidialoge

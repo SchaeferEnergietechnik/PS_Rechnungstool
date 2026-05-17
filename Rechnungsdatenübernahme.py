@@ -94,7 +94,11 @@ def _extract_customer_from_text(full_text: str) -> str:
                 return candidate
 
     # Fallback: erste nicht-leere Zeile nach dem Rechnungsblock
-    m_block = _INVOICE_LINE_PATTERN.search(full_text)
+    m_block = re.search(
+        r"Rechnung\s+(.{1,200}?)\s+((?:REPS\d{4}|RE\d{8}))",
+        full_text,
+        flags=re.IGNORECASE | re.DOTALL,
+    )
     if m_block:
         rest = full_text[m_block.end():]
         for line in rest.splitlines():
@@ -169,7 +173,7 @@ def extract_invoice_data_to_excel(pdf_path: str, excel_path: str) -> dict:
     # --- Projekt aus Text (zusätzlich/alternativ) ---
     if not projekt:
         projekt_match = re.search(
-            r"Rechnung\s+(.*?(?:REPS\d{4}|RE\d{8})\b)",
+            r"Rechnung\s+(.*?\b(?:REPS\d{4}|RE\d{8})\b)",
             full_text,
             flags=re.IGNORECASE | re.DOTALL,
         )
@@ -202,11 +206,30 @@ def _write_to_excel(data: dict, excel_path: str) -> None:
     if os.path.isfile(excel_path):
         wb = load_workbook(excel_path)
         ws = wb.active
-        # Prüfen ob Header vorhanden, sonst einfügen
-        if ws.max_row == 0 or ws.cell(row=1, column=1).value != "Rechnungsnummer":
-            ws.insert_rows(1)
-            for col, h in enumerate(headers, start=1):
-                ws.cell(row=1, column=col, value=h)
+        existing_headers = {
+            str(ws.cell(row=1, column=col).value or "").strip(): col
+            for col in range(1, ws.max_column + 1)
+        }
+        if existing_headers and any(existing_headers.values()):
+            target_row = ws.max_row + 1
+            header_aliases = {
+                "Rechnungsnummer": ["Rechnungsnummer", "Rechnung", "Rechnungs-Nr.", "Re-Nr."],
+                "Projekt": ["Projekt", "Projektname"],
+                "Kunde": ["Kunde", "Kundenname"],
+                "Datum": ["Datum", "Rechnungsdatum"],
+                "Betrag": ["Betrag", "Rechnungsbetrag", "Gesamtbetrag"],
+                "Quelle": ["Quelle", "Dateiname"],
+            }
+            for key in headers:
+                col = None
+                for alias in header_aliases[key]:
+                    if alias in existing_headers:
+                        col = existing_headers[alias]
+                        break
+                if col is not None:
+                    ws.cell(row=target_row, column=col, value=data.get(key, ""))
+            wb.save(excel_path)
+            return
     else:
         wb = openpyxl.Workbook()
         ws = wb.active
