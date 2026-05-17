@@ -99,7 +99,10 @@ def rename_invoice_pdf(pdf_path: str, dry_run: bool = False) -> str | None:
     # PDF-Text lesen
     try:
         text = _extract_text_from_pdf(pdf_path)
-    except Exception as exc:  # noqa: BLE001
+    except OSError as exc:
+        print(f"[FEHLER] Dateizugriff: {filename} – {exc}")
+        return None
+    except Exception as exc:  # noqa: BLE001 – pdfplumber-Fehler (korrupte PDF etc.)
         print(f"[FEHLER] Kann PDF nicht lesen: {filename} – {exc}")
         return None
 
