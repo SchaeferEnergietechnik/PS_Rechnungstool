@@ -1,0 +1,38 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+*.egg-info/
+.eggs/
+*.egg
+dist/
+build/
+*.spec.bak
+
+# PyInstaller Artefakte
+dist/
+build/
+*.spec~
+
+# Virtual environments
+venv/
+.venv/
+env/
+.env/
+
+# IDE
+.vscode/
+.idea/
+*.iml
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Excel-Ausgaben (nicht ins Repo)
+*.xlsx
+*.xls
+
+# PDF-Testdateien (nicht ins Repo)
+*.pdf
