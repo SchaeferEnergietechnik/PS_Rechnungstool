@@ -283,9 +283,15 @@ class PSRechnungstoolApp(tk.Tk):
         try:
             with contextlib.redirect_stdout(buf):
                 fn()
+        except OSError as exc:
+            buf.write(f"\n[FEHLER] Dateizugriff: {exc}\n")
+            messagebox.showerror("Fehler (Dateizugriff)", str(exc))
+        except ValueError as exc:
+            buf.write(f"\n[FEHLER] Ungültige Daten: {exc}\n")
+            messagebox.showerror("Fehler (Daten)", str(exc))
         except Exception as exc:  # noqa: BLE001
-            buf.write(f"\n[FEHLER] {exc}\n")
-            messagebox.showerror("Fehler", str(exc))
+            buf.write(f"\n[FEHLER] Unerwarteter Fehler: {exc}\n")
+            messagebox.showerror("Unerwarteter Fehler", str(exc))
         finally:
             self._append_log(buf.getvalue())
 

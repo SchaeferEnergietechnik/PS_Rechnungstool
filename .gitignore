@@ -11,8 +11,6 @@ build/
 *.spec.bak
 
 # PyInstaller Artefakte
-dist/
-build/
 *.spec~
 
 # Virtual environments

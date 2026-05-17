@@ -231,6 +231,8 @@ def process_folder(pdf_folder: str, excel_path: str) -> list[dict]:
             data = extract_invoice_data_to_excel(pdf_file, excel_path)
             results.append(data)
             print(f"[OK] {os.path.basename(pdf_file)} → {data['Rechnungsnummer']}")
+        except OSError as exc:
+            print(f"[FEHLER] Dateizugriff bei {os.path.basename(pdf_file)}: {exc}")
         except Exception as exc:  # noqa: BLE001
             print(f"[FEHLER] {os.path.basename(pdf_file)}: {exc}")
     return results
