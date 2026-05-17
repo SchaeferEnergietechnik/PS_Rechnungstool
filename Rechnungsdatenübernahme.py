@@ -210,16 +210,20 @@ def _write_to_excel(data: dict, excel_path: str) -> None:
             str(ws.cell(row=1, column=col).value or "").strip(): col
             for col in range(1, ws.max_column + 1)
         }
-        if existing_headers and any(existing_headers.values()):
+        header_aliases = {
+            "Rechnungsnummer": ["Rechnungsnummer", "Rechnung", "Rechnungs-Nr.", "Re-Nr."],
+            "Projekt": ["Projekt", "Projektname"],
+            "Kunde": ["Kunde", "Kundenname"],
+            "Datum": ["Datum", "Rechnungsdatum"],
+            "Betrag": ["Betrag", "Rechnungsbetrag", "Gesamtbetrag"],
+            "Quelle": ["Quelle", "Dateiname"],
+        }
+        if any(
+            alias in existing_headers
+            for aliases in header_aliases.values()
+            for alias in aliases
+        ):
             target_row = ws.max_row + 1
-            header_aliases = {
-                "Rechnungsnummer": ["Rechnungsnummer", "Rechnung", "Rechnungs-Nr.", "Re-Nr."],
-                "Projekt": ["Projekt", "Projektname"],
-                "Kunde": ["Kunde", "Kundenname"],
-                "Datum": ["Datum", "Rechnungsdatum"],
-                "Betrag": ["Betrag", "Rechnungsbetrag", "Gesamtbetrag"],
-                "Quelle": ["Quelle", "Dateiname"],
-            }
             for key in headers:
                 col = None
                 for alias in header_aliases[key]:
