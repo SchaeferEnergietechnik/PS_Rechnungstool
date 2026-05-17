@@ -1,0 +1,43 @@
+name: Build Windows EXE
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [ main ]
+  push:
+    branches: [ main, copilot/update-invoice-program-pdf-format ]
+
+jobs:
+  build-windows-exe:
+    runs-on: windows-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+
+      - name: Install dependencies
+        shell: cmd
+        run: |
+          python -m pip install --upgrade pip
+          if exist requirements.txt (
+            pip install -r requirements.txt
+          ) else (
+            pip install pyinstaller pdfplumber openpyxl PyPDF2 pandas pywin32 pillow
+          )
+
+      - name: Build EXE with PyInstaller spec
+        shell: cmd
+        run: |
+          pyinstaller --noconfirm PS_Rechnungstool.spec
+
+      - name: Upload EXE artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PS_Rechnungstool-windows-exe
+          path: dist/**
+          if-no-files-found: error
